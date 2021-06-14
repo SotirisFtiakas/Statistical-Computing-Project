@@ -14,7 +14,7 @@ columns <- colnames(cars)  # save column names as a list
 
 
 
-                        #      PLOTS      #
+#      PLOTS      #
 
 
 # Histograms
