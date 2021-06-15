@@ -1,9 +1,11 @@
 #install.packages("DescTools") # install for posthoc test
+#install.packages("olsrr") # install for stepwise variable selection
 
 #Cars manufacters Barplot 
 library("here") # library to work with relative paths
 library("readxl") # library to read excel files (better than csv)
 library("DescTools") #library for posthoc test
+library("olsrr") #library for stepwise variable selection
 
 cars <-read_excel(here("Dataset", "93Cars_values.xlsx")) # read excel
 
@@ -103,3 +105,65 @@ for (i in list(9,10,11,16,18)) {
   print(PostHocTest(mod.logvar,method="hsd"))
 }
 
+
+
+# STEP 6
+
+# Combine levels
+
+# AirBags
+airBags <- factor(cars$AirBags)
+levels(airBags)
+levels(airBags) [ c(2,3) ] <- "1,2"
+levels(airBags)
+mod.airBags <- aov(minPrice~airBags)
+print(PostHocTest(mod.airBags,method="hsd"))
+
+# DriveTrainType
+driveTrainType <- factor(cars$DriveTrainType)
+levels(driveTrainType)
+levels(driveTrainType) [ c(2,3) ] <- "1,2"
+levels(driveTrainType)
+mod.driveTrainType <- aov(minPrice~driveTrainType)
+print(PostHocTest(mod.driveTrainType,method="hsd"))
+
+# NumberOfCylinders
+cylinders <- factor(cars$NumberOfCylinders)
+levels(cylinders)
+levels(cylinders) [ c(1,2) ] <- "3,4"
+levels(cylinders)
+levels(cylinders) [ c(2,3) ] <- "5,6"
+levels(cylinders)
+mod.cylinders <- aov(minPrice~cylinders)
+print(PostHocTest(mod.cylinders,method="hsd"))
+
+# Passengers
+passengers <- factor(cars$Passengers)
+levels(passengers)
+levels(passengers) [ c(2,3) ] <- "4,5"
+levels(passengers)
+levels(passengers) [ c(3,4,5) ] <- "6,7,8"
+levels(passengers)
+mod.passengers <- aov(minPrice~passengers)
+print(PostHocTest(mod.passengers,method="hsd"))
+
+
+
+# STEP 7
+
+# Build Models
+
+# Model 1 = CityMPG vs MinimumPrice
+cityMPG = cars$CityMPG
+model1 <- lm(minPrice~cityMPG+airBags+driveTrainType+cylinders+passengers+airBags:driveTrainType+airBags:passengers)
+             #+driveTrainType+cylinders+passengers+airBags:driveTrainType+airBags:cylinders+airBags:passengers+driveTrainType:cylinders+driveTrainType:passengers+cylinders:passengers)
+summary.lm(model1)
+
+model.dim<-ols_step_both_p(model1)
+model.dim
+
+summary(model.dim$model)
+
+plot(cityMPG,minPrice,ylab="MinimumPrice",xlab="CityMPG")
+abline(22.8074,-0.4610)
+abline(22.8074+4.7288,-0.4610,col='red')
